@@ -1,8 +1,10 @@
+
 [build]
-  functions = "netlify/functions/"
   command = "npm install"
+  functions = "netlify/functions/"
+  publish = "public/"
 
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  from = "/api/generate" # Точный путь, который запрашивает frontend
+  to = "/.netlify/functions/generate" # Точный путь к нашей новой функции
   status = 200

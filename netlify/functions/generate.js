@@ -1,29 +1,25 @@
-// netlify/functions/api.js
+// netlify/functions/generate.js
 
-const express = require('express');
-const serverless = require('serverless-http');
-const cors = require('cors');
-require('dotenv').config();
+// Мы не используем Express, поэтому код намного проще
 
-const app = express();
-const router = express.Router();
-
-app.use(cors());
-app.use(express.json());
-
-router.post('/generate', async (req, res) => {
-    const { systemPrompt, userPrompt } = req.body;
-    const apiKey = process.env.GROQ_API_KEY;
-
-    if (!apiKey) {
-        return res.status(500).json({ error: 'API ключ не настроен на сервере.' });
+exports.handler = async (event) => {
+    // Netlify требует, чтобы POST-запросы обрабатывались только методом POST
+    if (event.httpMethod !== 'POST') {
+        return { statusCode: 405, body: 'Method Not Allowed' };
     }
 
     try {
+        const { systemPrompt, userPrompt } = JSON.parse(event.body);
+        const apiKey = process.env.GROQ_API_KEY;
+
+        if (!apiKey) {
+            return { statusCode: 500, body: JSON.stringify({ error: 'API ключ не настроен на сервере.' }) };
+        }
+
         const models = ['llama-3.3-70b-versatile', 'llama3-8b-8192', 'gemma2-9b-it'];
         let htmlResult = '';
         let success = false;
-        
+
         for (const model of models) {
             try {
                 const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -48,22 +44,23 @@ router.post('/generate', async (req, res) => {
                 console.warn(`Модель ${model} не ответила, пробую следующую...`);
             }
         }
-
-        if (success) {
-            res.json({ content: htmlResult });
-        } else {
+        
+        if (!success) {
             throw new Error('Все серверы Groq в данный момент перегружены.');
         }
 
+        // Возвращаем успешный ответ в формате, который требует Netlify
+        return {
+            statusCode: 200,
+            body: JSON.stringify({ content: htmlResult }),
+        };
+
     } catch (error) {
-        console.error('Ошибка при запросе к Groq API:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Ошибка в серверной функции:', error);
+        // Возвращаем ошибку в формате, который требует Netlify
+        return {
+            statusCode: 500,
+            body: JSON.stringify({ error: error.message }),
+        };
     }
-});
-
-// Мы говорим Express использовать наш роутер в корне
-// Вся магия маршрутизации теперь происходит в netlify.toml
-app.use('/', router);
-
-// Экспортируем обернутое приложение для Netlify
-module.exports.handler = serverless(app);
+};
