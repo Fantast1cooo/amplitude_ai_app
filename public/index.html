@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amplitude</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">Amplitude</div>
+    <div class="header-controls">
+        <div class="lang-switcher">
+            <button class="lang-btn active" data-lang="ru" title="Русский"><img src="https://flagcdn.com/w40/ru.png" alt="RU"></button>
+            <button class="lang-btn" data-lang="en" title="English"><img src="https://flagcdn.com/w40/gb.png" alt="EN"></button>
+            <button class="lang-btn" data-lang="fr" title="Français"><img src="https://flagcdn.com/w40/fr.png" alt="FR"></button>
+            <button class="lang-btn" data-lang="es" title="Español"><img src="https://flagcdn.com/w40/es.png" alt="ES"></button>
+        </div>
+        <div class="theme-switcher">
+            <div class="theme-circle dark" data-theme-set="dark" title="Dark Theme"></div>
+            <div class="theme-circle light" data-theme-set="light" title="Light Theme"></div>
+        </div>
+    </div>
+</header>
+
+<div class="layout-wrapper" id="mainLayout">
+    <!-- Левая колонка -->
+    <div class="left-col" id="leftCol">
+        <div class="side-card">
+            <div class="header-with-switch">
+                <div class="section-title" data-i18n="filter_title">Тонкая настройка</div>
+                <label class="switch" title="Включить/Выключить фильтры">
+                    <input type="checkbox" id="useFiltersToggle" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div id="filterFieldsWrapper">
+                <div class="form-group"><label class="form-label" for="filterLevel" data-i18n="level_label">Уровень подготовки</label><select id="filterLevel"><option value="beginner" data-i18n="level_beg">Новичок</option><option value="intermediate" data-i18n="level_int" selected>Средний</option><option value="advanced" data-i18n="level_adv">Опытный</option></select></div>
+                <div class="form-group"><label class="form-label" for="filterLocation" data-i18n="loc_label">Место тренировок</label><select id="filterLocation"><option value="gym" data-i18n="loc_gym">Тренажерный зал</option><option value="home" data-i18n="loc_home">Дома</option><option value="outdoor" data-i18n="loc_out">На улице</option></select></div>
+                <div class="form-group"><label class="form-label" for="filterDays" data-i18n="days_label">Дней в неделю</label><select id="filterDays"><option value="1" data-i18n="day_1">1 день</option><option value="2" data-i18n="day_2">2 дня</option><option value="3" data-i18n="day_3" selected>3 дня</option><option value="4" data-i18n="day_4">4 дня</option><option value="5" data-i18n="day_5">5 дней</option><option value="6" data-i18n="day_6">6 дней</option><option value="7" data-i18n="day_7">7 дней</option></select></div>
+                <div class="form-group" style="margin-bottom: 0;"><label class="form-label" for="filterNotes" data-i18n="notes_label">Особенности / Травмы</label><textarea id="filterNotes" placeholder="Например: болят колени, веган..."></textarea></div>
+            </div>
+        </div>
+    </div>
+    <!-- Центральная колонка -->
+    <div class="main-col">
+        <div class="hero" id="heroSection"><div class="hero-content"><h1 data-i18n="hero_title">Создай себя</h1><p data-i18n="hero_desc">ИИ-генерация идеальной программы тренировок и питания на основе вашей физиологии.</p></div></div>
+        <div class="section" id="inputSection">
+            <div class="section-title" data-i18n="data_title">Физические данные</div>
+            <div class="grid-2"><div class="form-group"><label class="form-label" for="userHeight" data-i18n="height_label">Рост (см)</label><input type="number" id="userHeight" placeholder="175" min="100" max="250"></div><div class="form-group"><label class="form-label" for="userWeight" data-i18n="weight_label">Вес (кг)</label><input type="number" id="userWeight" placeholder="70" min="30" max="300"></div></div>
+            <div class="form-group"><label class="form-label" for="userGender" data-i18n="gender_label">Пол</label><select id="userGender"><option value="male" data-i18n="male">Мужской</option><option value="female" data-i18n="female">Женский</option></select></div>
+            <div class="section-title" style="margin-top: 1.5rem;" data-i18n="workout_title">Тип тренировки</div>
+            <div class="toggle-group" id="workoutToggle"><button class="toggle-btn active" data-type="strength" data-i18n="strength">Силовая</button><button class="toggle-btn" data-type="cardio" data-i18n="cardio">Кардио</button></div>
+            <div id="formError" class="error hidden" data-i18n="error_data">Пожалуйста, заполните рост и вес корректно.</div><button class="btn" id="btnGenerate" data-i18n="generate_btn">Сгенерировать программу</button>
+        </div>
+        <div id="loader" class="hidden"><div class="spinner"></div><div class="loading-text" id="loadingText" data-i18n="loading">Синтез программы...</div></div>
+        <div class="section hidden" id="resultSection">
+            <div class="section-title" data-i18n="result_title">Ваша персональная программа</div><div id="resultContent"></div>
+            <div class="grid-2" style="margin-top: 1.5rem;"><button class="btn" id="btnReset" style="background-color: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); margin-top: 0;" data-i18n="reset_btn">Начать заново</button><button class="btn" id="btnPrint" style="margin-top: 0;" data-i18n="print_btn">Распечатать</button></div>
+        </div>
+    </div>
+    <!-- Правая колонка -->
+    <div class="side-col">
+        <div class="side-card" id="infoCard"><img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=1470&auto=format&fit=crop" alt="Gym" class="side-img"><div class="section-title" data-i18n="side_title">Как это работает</div><ul class="side-list"><li data-i18n="side_1">Укажите свои параметры</li><li data-i18n="side_2">ИИ анализирует данные</li><li data-i18n="side_3">Получите идеальный план</li></ul></div>
+        <div class="side-card hidden" id="bmiCard"><div class="section-title" data-i18n="bmi_title">Анализ тела (ИМТ)</div><div class="bmi-value" id="bmiValue">--</div><div class="bmi-status" id="bmiStatus">--</div><div class="bmi-desc" data-i18n="bmi_desc">Индекс массы тела и ваши настройки учитываются нейросетью для максимальной точности.</div></div>
+    </div>
+</div>
+
+<script src="script.js" defer></script>
+</body>
+</html>
