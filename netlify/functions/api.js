@@ -1,24 +1,22 @@
-// Импортируем необходимые библиотеки
+// netlify/functions/api.js
+
 const express = require('express');
+const serverless = require('serverless-http'); // <-- Новая библиотека
 const cors = require('cors');
-require('dotenv').config(); // Загружаем переменные из .env файла
+require('dotenv').config();
 
-// Создаем приложение Express
 const app = express();
-const PORT = process.env.PORT || 3000;
+const router = express.Router(); // <-- Используем Express Router
 
-// Настраиваем middleware
-app.use(cors()); // Разрешает запросы с других доменов
-app.use(express.json()); // Позволяет парсить JSON-тела запросов
-app.use(express.static('public')); // Обслуживает статичные файлы из папки 'public'
+app.use(cors());
+app.use(express.json());
 
-// Главный API эндпоинт для генерации программы
-app.post('/api/generate', async (req, res) => {
-    // Получаем данные от клиента (из script.js)
+// Вся логика API теперь внутри router.post
+// Путь теперь '/generate', а не '/api/generate'
+router.post('/generate', async (req, res) => {
     const { systemPrompt, userPrompt } = req.body;
     const apiKey = process.env.GROQ_API_KEY;
 
-    // Проверка, что ключ есть на сервере
     if (!apiKey) {
         return res.status(500).json({ error: 'API ключ не настроен на сервере.' });
     }
@@ -28,7 +26,6 @@ app.post('/api/generate', async (req, res) => {
         let htmlResult = '';
         let success = false;
         
-        // Пытаемся получить ответ от одной из моделей Groq
         for (const model of models) {
             try {
                 const groqResponse = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -47,7 +44,7 @@ app.post('/api/generate', async (req, res) => {
                     const data = await groqResponse.json();
                     htmlResult = data.choices[0].message.content;
                     success = true;
-                    break; // Если успешно, выходим из цикла
+                    break;
                 }
             } catch (e) {
                 console.warn(`Модель ${model} не ответила, пробую следующую...`);
@@ -55,10 +52,8 @@ app.post('/api/generate', async (req, res) => {
         }
 
         if (success) {
-            // Отправляем успешный результат обратно клиенту
             res.json({ content: htmlResult });
         } else {
-            // Если ни одна модель не ответила
             throw new Error('Все серверы Groq в данный момент перегружены.');
         }
 
@@ -68,7 +63,8 @@ app.post('/api/generate', async (req, res) => {
     }
 });
 
-// Запуск сервера
-app.listen(PORT, () => {
-    console.log(`Сервер Amplitude запущен на http://localhost:${PORT}`);
-});
+// Говорим приложению использовать роутер по пути /.netlify/functions/api
+app.use('/.netlify/functions/api', router);
+
+// Экспортируем обернутое приложение для Netlify
+module.exports.handler = serverless(app);
