@@ -1,18 +1,16 @@
 // netlify/functions/api.js
 
 const express = require('express');
-const serverless = require('serverless-http'); // <-- Новая библиотека
+const serverless = require('serverless-http');
 const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-const router = express.Router(); // <-- Используем Express Router
+const router = express.Router();
 
 app.use(cors());
 app.use(express.json());
 
-// Вся логика API теперь внутри router.post
-// Путь теперь '/generate', а не '/api/generate'
 router.post('/generate', async (req, res) => {
     const { systemPrompt, userPrompt } = req.body;
     const apiKey = process.env.GROQ_API_KEY;
@@ -63,8 +61,9 @@ router.post('/generate', async (req, res) => {
     }
 });
 
-// Говорим приложению использовать роутер по пути /.netlify/functions/api
-app.use('/.netlify/functions/api', router);
+// Мы говорим Express использовать наш роутер в корне
+// Вся магия маршрутизации теперь происходит в netlify.toml
+app.use('/', router);
 
 // Экспортируем обернутое приложение для Netlify
 module.exports.handler = serverless(app);
